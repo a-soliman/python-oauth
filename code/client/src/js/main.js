@@ -24,7 +24,7 @@ function signInCallback(authResult) {
     console.log(JSON.stringify(data))
     
     console.log('before: ', JSON.stringify(data))
-    fetch("http://localhost:5555/gconnect", {
+    fetch("http://localhost:5555/login", {
         method: 'POST',
         
         headers: {

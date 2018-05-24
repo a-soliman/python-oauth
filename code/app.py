@@ -64,7 +64,27 @@ def gconnect():
         response = {'message': 'Token user ID dos not match given user ID.'}
         return jsonify(response), 401
     
-    
+    # Check if the user is already logged in
+    '''
+        Complete later
+    '''
+
+    # Store the access token in the session for later user.
+    login_session['access_token'] = access_token
+    login_session['gplus_id'] = gplus_id
+
+    # Get user info
+    userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
+    params = {'access_token': access_token, 'alt': 'json'}
+    answer = requests.get(userinfo_url, params=params)
+    data = json.loads(answer.text)
+
+    login_session['username'] = data["name"]
+    login_session['picture'] = data["picture"]
+    login_session['email'] = data["email"]
+
+    response = {"success": "true", "email": login_session['email'], "username": login_session['username'], "picture": login_session['picture']}
+    return response, 200
 
 
 

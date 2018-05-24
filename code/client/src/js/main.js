@@ -20,29 +20,24 @@ function getLoginState(){
 
 function signInCallback(authResult) {
     const access_token = authResult.access_token;
-    const data = {state, access_token}
+    const data = {state, code: authResult['code']}
+    console.log(JSON.stringify(data))
     
     console.log('before: ', JSON.stringify(data))
     fetch("http://localhost:5555/gconnect", {
-        mode: 'no-cors',
         method: 'POST',
-            headers: {
-                'Content-Type': 'appication/json'
-            },
-            body: JSON.stringify(data),
-            cache: 'no-cache',
-    }).then( ( response ) => {
-        if (response.status !== 201 ) {
-            console.log('Looks like the backend server is not running on port 5000. ' + response.status);
-            response.json().then( ( data ) => {
-                console.log(data)
-            })
-            return false;
-        }
-        response.json().then( ( data ) => {
-            console.log(data)
-            return true;
-        })
+        
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'appication/json'
+        },
+        body: JSON.stringify(data),
+        cache: 'no-cache',
+    })
+    .then( ( response ) => {
+        return response.json()
+    }).then( ( data ) => {
+        console.log(data)
     })
 }
     var test_data = {name: 'Ahmed', age: 30}

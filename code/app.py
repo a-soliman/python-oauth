@@ -53,6 +53,17 @@ def gconnect():
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
 
+    # If there was an error in the access token info, abort.
+    if result.get('error') is not None:
+        response = {'message': result.get('error')}
+        return jsonify(response), 500
+    
+    # Verify that the access token is used for the intended user.
+    gplus_id = credentials.id_token['sub']
+    if result['used_id'] != gplus_id:
+        response = {'message': 'Token user ID dos not match given user ID.'}
+        return jsonify(response), 401
+    
     
 
 

@@ -12,6 +12,15 @@ CLIENT_ID = json.loads(
 
 app = Flask(__name__)
 
+# Allows Origin for the front end to interact.
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+    return response
+
+
 @app.route('/login')
 def showLogin():
     #define and generate session token and send it to the FE to save
@@ -23,8 +32,8 @@ def showLogin():
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     # parse the sesstion token
-    if request.json['session_state']:
-        client_session_state = request.json['session_state']
+    if request.args.get('state'):
+        client_session_state = request.args.get('state')
     else:
         response = {'message': 'Invalid Request, No session state detected.'}
         return jsonify(response), 401
@@ -35,7 +44,9 @@ def gconnect():
         return jsonify(response), 401
 
     # Collect the login data
-    code = request.data
+    args = request.get_json()
+    print('args: ', args)
+    code = args['code']
 
     try:
         # Upgrade the authorization code into a credentials object

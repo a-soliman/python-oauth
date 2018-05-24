@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Login</title>
+	<link rel="stylesheet" href="css/bootstrap.css">
+	<link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="//apis.google.com/js/platform.js?onload=start"> </script>
+    <!-- END PRE-REQUISITES FOR GOOGLE SIGN IN -->
+</head>
+<body onload="getLoginState()">
+	<!-- Body STARTS HERE -->
+	<div class="container">
+		Login page
+    </div>
+    
+    <!-- GOOGLE PLUS SIGN IN BUTTON-->   
+    <div id="signinButton">
+        <span class="g-signin"
+          data-scope="openid email"
+          data-clientid="1016299865700-esbt9asae9pse8ner0pl0vhp4bv1unb3.apps.googleusercontent.com"
+          data-redirecturi="postmessage"
+          data-accesstype="offline"
+          data-cookiepolicy="single_host_origin"
+          data-callback="signInCallback"
+          data-approvalprompt="force">
+        </span>
+      </div>
+
+    <div id="result"></div>
+
+	<!-- Body ENDS HERE -->
+	<script src="./js/jquery.min.js"></script>
+	<script src="./js/popper.min.js"></script>
+	<script src="./js/bootstrap.min.js"></script>
+	<script src="./js/main.js"></script>
+</body>
+</html>

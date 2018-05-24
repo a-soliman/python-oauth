@@ -1,11 +1,32 @@
-from flask import Flask
+from flask import Flask, request, jsonify
+from flask import session as login_session
 from oauth2client.client import flow_from_clientsecrets, FlowExchangeError
 import httplib2
 import json
 import requests
+import random, string
 
+# refrencing the client secret file
+CLIENT_ID = json.loads(
+    open('client_secrets.json', 'r').read())['web']['client_id']
 
 app = Flask(__name__)
+
+@app.route('/login')
+def showLogin():
+    #define and generate session token and send it to the FE to save
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
+    login_session['state'] = state
+    print("\n \n \n ")
+    print(state)
+    response = {'state': state} 
+    return jsonify(response)
+
+@app.route('/gconnect', methods=['POST'])
+def gconnect():
+    # check if the session token is correct and up to date
+    if request.args.get('state') != login_session['state']:
+        return {'message': 'Invalid state parameters'}, 401
 
 @app.route('/')
 def get_home():
@@ -13,4 +34,5 @@ def get_home():
 
 
 if __name__ == '__main__':
+    app.secret_key = 'super_secret_key'
     app.run(port=5555, debug=True)

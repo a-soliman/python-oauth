@@ -19,34 +19,53 @@ function getLoginState(){
 }
 
 function signInCallback(authResult) {
-    if (authResult['code']) {
-        // Hide the sign-in button now that the user is authorized
-        $('#signinButton').attr('style', 'display: none');
-        console.log(authResult)
-        // Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main restaurants page
-        $.ajax({
-        type: 'POST',
-        url: serverURI + '/gconnect?state='+ state,
-        processData: false,
-        data: JSON.stringify(authResult['code']),
-        contentType: 'application/json',
-        success: function(result) {
-            // Handle or verify the server response if necessary.
-            console.log('sucess')
-            console.log(result)
-            if (result) {
-            $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
-            setTimeout(function() {
-            window.location.href = "/restaurant";
-            }, 4000);
-            
-        } else if (authResult['error']) {
-        console.log('There was an error: ' + authResult['error']);
-    } else {
-            $('#result').html('Failed to make a server-side call. Check your configuration and console.');
-            }
+    const access_token = authResult.access_token;
+    const data = {state, access_token}
+    
+    console.log('before: ', JSON.stringify(data))
+    fetch("http://localhost:5555/gconnect", {
+        mode: 'no-cors',
+        method: 'POST',
+            headers: {
+                'Content-Type': 'appication/json'
+            },
+            body: JSON.stringify(data),
+            cache: 'no-cache',
+    }).then( ( response ) => {
+        if (response.status !== 201 ) {
+            console.log('Looks like the backend server is not running on port 5000. ' + response.status);
+            response.json().then( ( data ) => {
+                console.log(data)
+            })
+            return false;
         }
-        
-    }); } }
+        response.json().then( ( data ) => {
+            console.log(data)
+            return true;
+        })
+    })
+}
+    var test_data = {name: 'Ahmed', age: 30}
 
-
+    function testRequest() {
+        fetch('http://localhost:5555/test', {
+            method: 'POST',
+            headers: {
+                'content-type': 'appication/json'
+            },
+            body: JSON.stringify(test_data),
+            cache: 'no-cache',
+        }).then( ( response ) => {
+            if (response.status !== 201 ) {
+                console.log('Looks like the backend server is not running on port 5000. ' + response.status);
+                response.json().then( ( data ) => {
+                    console.log(data)
+                })
+                return false;
+            }
+            response.json().then( ( data ) => {
+                console.log(data)
+                return true;
+            })
+        })
+    }

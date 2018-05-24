@@ -14,6 +14,7 @@ CLIENT_ID = json.loads(
 
 app = Flask(__name__)
 # CORS(app)
+
 #Allows Origin for the front end to interact.
 @app.after_request
 def after_request(response):
@@ -23,12 +24,6 @@ def after_request(response):
     return response
 api = Api(app)
 
-@app.route('/test', methods=['POST'])
-def do_test():
-    args = request.data
-
-    print(json.loads(args))
-    return jsonify({'message': 'hello'})
 
 login_session_state = ''
 
@@ -42,110 +37,74 @@ class Login(Resource):
         return response, 200
 
 class Gconnect(Resource):
-    # parser = reqparse.RequestParser()
-    # parser.add_argument('state')
-    # parser.add_argument('access_token')
-
+    
     def post(self):
         data = request.data
         args = json.loads(data)
-        print('\n \n \n ')
-        print(args)
-        print('\n \n \n')
-        # check if the correct session state was recived.
-        # if args['state'] is None or args['state'] != login_session['state']:
-        #     print('login_session["state"]: ', login_session['state'])
-        #     return {'success': False, 'message': 'Invalid state parameters'}, 401
-        
+
+        #check if data were passed
+        if args['state'] is None or args['code'] is None:
+            return {'success': False, 'Message': 'Invalid request.'}, 400
+
         # Collect the login data
-        if args['access_token'] is None:
-            return {'success': False, 'message': 'No code recieved.'},400
-        access_token = args['access_token']
-        print(access_token)
-        return {'message': 'recived access_token'}, 200
+        state = args['state']
+        code = args['code']
 
-# @app.route('/gconnect', methods=['POST'])
-# def gconnect():
-#     # parse the sesstion token
-#     if request.args.get('state'):
-#         client_session_state = request.args.get('state')
-#     else:
-#         response = {'message': 'Invalid Request, No session state detected.'}
-#         return jsonify(response), 401
+        print(code)
+
+        try:
+            #upgrade the authorization code into a credentials object
+            oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
+            oauth_flow.redirect_uri = 'postmessage'
+            credentials = oauth_flow.step2_exchange(code)
+            access_token = credentials.access_token
+            print("\n \n \n \n \n ================")
+            print(access_token)
+            print("\n \n \n \n \n ================")
+    
+        except FlowExchangeError:
+            return {'Success': False, 'Message': 'Faild to upgrade the authorization code.'}, 401
         
-#     # check if the session token is correct and up to date
-#     if client_session_state != login_session['state']:
-#         response = {'message': 'Invalid state parameters'}
-#         return jsonify(response), 401
+        #Check that the access token is valid
+        url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={}'.format(access_token))
+        h = httplib2.Http()
+        result = json.loads(h.request(url, 'GET')[1])
+        
+        # if there was an error in the access token info, abort
+        if result.get('error') is not None:
+            return {'Sucess': False, 'Message': result.get('error')}, 500
 
-#     # Collect the login data
-#     args = request.data
-#     data = json.loads(args)
-#     print(data)
-    # code = data['code']
+        # Verify that the access token is used for the intended user
+        gplus_id = credentials.id_token['sub']
+        if result['user_id'] != gplus_id:
+            return {'Success': False, 'Message': "Token's user ID dosn't match given user ID."}, 401
 
-    # try:
-    #     # Upgrade the authorization code into a credentials object
-    #     oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
-    #     oauth_flow.redirect_url = 'postmessage'
-    #     credentials = oauth_flow.step2_exchange(code)
+        # Verify that the access token is valid for this app
+        if result['issued_to'] != CLIENT_ID:
+            return {'Success': False, 'Message': "Token's client ID does not match app's"}, 401
+        
+        # Check to see if user is already logged in
+        ''' Code this later '''
 
-    # except FlowExchangeError:
-    #     response = {'message': 'Failed to upgrade the authorization code'}
-    #     return jsonify(response), 401
-    
-    # # Check that the access token is valid
-    # access_token = credentials.access_token
-    # url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={}'.format(access_token))
-    # h = httplib2.Http()
-    # result = json.loads(h.request(url, 'GET')[1])
+        # Store the access Token in the session for later use
+        ''' Code this later '''
 
-    # # If there was an error in the access token info, abort.
-    # if result.get('error') is not None:
-    #     response = {'message': result.get('error')}
-    #     return jsonify(response), 500
-    
-    # # Verify that the access token is used for the intended user.
-    # gplus_id = credentials.id_token['sub']
-    # if result['used_id'] != gplus_id:
-    #     response = {'message': 'Token user ID dos not match given user ID.'}
-    #     return jsonify(response), 401
-    
-    # # Check if the user is already logged in
-    # '''
-    #     Complete later
-    # '''
+        # Get user info
+        userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
+        params = {'access_token': access_token}
+        answer = requests.get(userinfo_url, params=params)
+        data = json.loads(answer.text)
 
-    # # Store the access token in the session for later user.
-    # login_session['access_token'] = access_token
-    # login_session['gplus_id'] = gplus_id
+        # Store User info
+        name = data['name']
+        email = data['email']
+        picture = data['picture']
 
-    # # Get user info
-    # userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
-    # params = {'access_token': access_token, 'alt': 'json'}
-    # answer = requests.get(userinfo_url, params=params)
-    # data = json.loads(answer.text)
-
-    # login_session['username'] = data["name"]
-    # login_session['picture'] = data["picture"]
-    # login_session['email'] = data["email"]
-
-    # response = {"success": "true", "email": login_session['email'], "username": login_session['username'], "picture": login_session['picture']}
-    # return response, 200
-
-    # return jsonify({'test': 'test'})
-
-
-
-
-@app.route('/')
-def get_home():
-    return 'Hello there'
-
-
+        return { 'Success': True, 'name': name, 'email': email, 'picture': picture}
 
 api.add_resource(Login, '/login')
 api.add_resource(Gconnect, '/gconnect')
+
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
     app.run(port=5555, debug=True)

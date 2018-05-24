@@ -17,16 +17,22 @@ def showLogin():
     #define and generate session token and send it to the FE to save
     state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
     login_session['state'] = state
-    print("\n \n \n ")
-    print(state)
     response = {'state': state} 
     return jsonify(response)
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    # parse the sesstion token
+    if request.json['session_state']:
+        client_session_state = request.json['session_state']
+    else:
+        response = {'message': 'Invalid Request, No session state detected.'}
+        return jsonify(response), 401
+        
     # check if the session token is correct and up to date
-    if request.args.get('state') != login_session['state']:
-        return {'message': 'Invalid state parameters'}, 401
+    if client_session_state != login_session['state']:
+        response = {'message': 'Invalid state parameters'}
+        return jsonify(response), 401
 
 @app.route('/')
 def get_home():

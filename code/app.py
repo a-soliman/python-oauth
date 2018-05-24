@@ -34,6 +34,14 @@ def gconnect():
         response = {'message': 'Invalid state parameters'}
         return jsonify(response), 401
 
+    # Collect the login data
+    code = request.data
+
+    
+
+
+
+
 @app.route('/')
 def get_home():
     return 'Hello there'

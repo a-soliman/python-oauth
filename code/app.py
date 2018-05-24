@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask import session as login_session
 from flask_restful import Resource, Api, reqparse
-# from flask_cors import CORS
 from oauth2client.client import flow_from_clientsecrets, FlowExchangeError
 import httplib2
 import json
@@ -13,7 +12,6 @@ CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 
 app = Flask(__name__)
-# CORS(app)
 
 #Allows Origin for the front end to interact.
 @app.after_request
@@ -22,10 +20,8 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Headers', '*')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
     return response
+
 api = Api(app)
-
-
-
 
 class Login(Resource):
     login_session_state = None

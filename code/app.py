@@ -100,77 +100,9 @@ class Login(Resource):
 
         return { 'Success': True, 'name': name, 'email': email, 'picture': picture}
 
-class Gconnect(Resource):
-    
-    def post(self):
-        data = request.data
-        args = json.loads(data)
 
-        #check if data were passed
-        if args['state'] is None or args['code'] is None:
-            return {'success': False, 'Message': 'Invalid request.'}, 400
-
-        # Compare the state with the saved state
-        # print('*'*20)
-        # print(login_session_state)
-        # print('*'*20)
-
-        # Collect the login data
-        state = args['state']
-        code = args['code']
-
-        try:
-            #upgrade the authorization code into a credentials object
-            oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
-            oauth_flow.redirect_uri = 'postmessage'
-            credentials = oauth_flow.step2_exchange(code)
-            access_token = credentials.access_token
-    
-        except FlowExchangeError:
-            return {'Success': False, 'Message': 'Faild to upgrade the authorization code.'}, 401
-        
-        #Check that the access token is valid
-        url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={}'.format(access_token))
-        h = httplib2.Http()
-        result = json.loads(h.request(url, 'GET')[1])
-        
-        # if there was an error in the access token info, abort
-        if result.get('error') is not None:
-            return {'Sucess': False, 'Message': result.get('error')}, 500
-
-        # Verify that the access token is used for the intended user
-        gplus_id = credentials.id_token['sub']
-        if result['user_id'] != gplus_id:
-            return {'Success': False, 'Message': "Token's user ID dosn't match given user ID."}, 401
-
-        # Verify that the access token is valid for this app
-        if result['issued_to'] != CLIENT_ID:
-            return {'Success': False, 'Message': "Token's client ID does not match app's"}, 401
-        
-        # Check to see if user is already logged in
-        ''' Code this later '''
-        print('*'*20)
-        print(login_session)
-        print('*'*20)
-
-        # Store the access Token in the session for later use
-        ''' Code this later '''
-
-        # Get user info
-        userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
-        params = {'access_token': access_token}
-        answer = requests.get(userinfo_url, params=params)
-        data = json.loads(answer.text)
-
-        # Store User info
-        name = data['name']
-        email = data['email']
-        picture = data['picture']
-
-        return { 'Success': True, 'name': name, 'email': email, 'picture': picture}
 
 api.add_resource(Login, '/login')
-api.add_resource(Gconnect, '/gconnect')
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
